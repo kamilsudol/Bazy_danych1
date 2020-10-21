@@ -1,0 +1,14 @@
+1. SELECT ename, dname FROM emp, dept WHERE (emp.deptno = dept.deptno) ORDER BY ename;
+2. SELECT deptno, ename, mgr FROM emp;
+3. SELECT ename, CAST((sal+250)*12 AS INT) AS revenue FROM emp;
+4. SELECT ename FROM emp ORDER BY hiredate DESC;
+5. SELECT ename, job, sal, deptno FROM emp WHERE (job = 'CLERK');
+6. SELECT * FROM emp WHERE comm > sal;
+7. SELECT * FROM emp WHERE (sal > 999 AND sal < 2001);
+8. SELECT * FROM emp WHERE ename LIKE 'S%';
+9. SELECT * FROM emp WHERE ename LIKE '____';
+10. SELECT * FROM emp WHERE mgr IS NULL;
+11. SELECT * FROM emp WHERE (job = 'CLERK' AND sal >= 1000 AND sal < 2000);
+12. SELECT * FROM emp WHERE (deptno = 10 OR deptno = 20) ORDER BY ename;
+
+
