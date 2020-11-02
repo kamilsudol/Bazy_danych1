@@ -1,0 +1,14 @@
+1. SELECT e.ename, d.dname, e.sal FROM emp e, dept d WHERE (d.deptno=e.deptno AND e.sal BETWEEN (SELECT g.losal FROM salgrade g WHERE g.grade = 3)AND(SELECT g.hisal FROM salgrade g WHERE g.grade = 3));
+2. SELECT e.ename, d.dname, g.grade FROM emp e, dept d, salgrade g WHERE (d.deptno=e.deptno AND e.sal BETWEEN g.losal AND g.hisal);
+3. SELECT e.ename, e.deptno FROM emp e WHERE e.sal < (SELECT sal FROM emp WHERE empno = e.mgr);
+4. SELECT d.dname, AVG(e.sal) FROM emp e JOIN dept d ON d.deptno = e.deptno GROUP BY d.deptno HAVING COUNT(*)>3;
+5. SELECT AVG(e.sal), e.job FROM emp e GROUP BY e.job HAVING e.job != 'MANAGER';
+6. SELECT AVG(e.sal), d.dname FROM emp e JOIN dept d ON d.deptno = e.deptno GROUP BY d.deptno HAVING COUNT(*)>3;
+7. SELECT MAX(e.sal), g.grade FROM emp e JOIN salgrade g ON e.sal BETWEEN g.losal AND g.hisal GROUP BY g.grade;
+8. SELECT e.job FROM emp e GROUP BY e.job HAVING AVG(e.sal) >= 3000;
+9. SELECT AVG(e.sal), e.job, d.dname FROM emp e JOIN dept d ON d.deptno = e.deptno GROUP BY e.job, d.dname;
+
+Kwerenda z zajęć
+1. insert into orderline(orderinfo_id, item_id, quantity) values((SELECT customer_id from customer where lname LIKE 'Cozens'), (SELECT item_id from item where description LIKE 'Wood Puzzle'), 1);
+
+
