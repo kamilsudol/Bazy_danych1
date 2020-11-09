@@ -1,0 +1,14 @@
+1. SELECT e.ename FROM emp e WHERE e.job=(SELECT e.job FROM emp e WHERE e.ename='BLAKE');
+2. SELECT e.ename, e.sal, e.deptno FROM emp e JOIN(SELECT MIN(sal) as minimalna, deptno FROM emp GROUP BY deptno) m ON (e.deptno=m.deptno) WHERE e.sal = m.minimalna AND e.deptno = m.deptno ORDER BY deptno;
+3. SELECT e.ename, e.sal, e.deptno FROM emp e JOIN(SELECT MIN(sal) as minimalna, deptno FROM emp GROUP BY deptno) m ON (e.deptno=m.deptno) WHERE e.sal = m.minimalna AND e.deptno = m.deptno ORDER BY sal;
+4. SELECT e.ename FROM emp e WHERE e.sal > ANY(SELECT MIN(sal) FROM emp GROUP BY deptno HAVING deptno = 30);
+5. SELECT e.ename FROM emp e WHERE e.sal > ALL(SELECT sal FROM emp WHERE deptno = 30);
+6. SELECT e.job FROM emp e WHERE e.sal > (SELECT MAX(s.srednia) FROM (SELECT AVG(sal) AS srednia FROM emp GROUP BY deptno) s);
+7. SELECT e.ename FROM emp e WHERE EXISTS (SELECT empno FROM emp WHERE mgr = e.empno);
+8. SELECT e.empno, e.ename, e.job, e.hiredate, e.sal, e.deptno FROM emp e JOIN (SELECT deptno, MAX(hiredate) AS new_emp FROM emp GROUP BY deptno) n ON (e.deptno = n.deptno) WHERE e.deptno = n.deptno AND e.hiredate = n.new_emp ORDER BY e.hiredate DESC;
+9. SELECT e.deptno, CAST(COUNT(e.deptno) AS NUMERIC(7,2))/CAST((SELECT COUNT(*) FROM emp) AS NUMERIC(7,2)) AS procentage_activity FROM emp e GROUP BY e.deptno ORDER BY e.deptno;
+10. SELECT e.job, MAX(e.sal) FROM emp e JOIN salgrade s ON e.sal BETWEEN s.losal AND s.hisal GROUP BY e.job;
+12. SELECT e.sal FROM emp e GROUP BY e.sal HAVING COUNT(e.sal) > 1;
+11. SELECT MAX(e.sal)-MIN(e.sal) AS difference FROM emp e;
+13. SELECT AVG(e.sal) FROM emp e WHERE e.sal BETWEEN (SELECT g.losal FROM salgrade g WHERE g.grade = 2)AND(SELECT g.hisal FROM salgrade g WHERE g.grade = 2);
+14. SELECT e.mgr, MIN(e.sal) AS min_sal FROM emp e GROUP BY e.mgr HAVING MIN(e.sal) >= 1000 ORDER BY MIN(e.sal) ASC;
