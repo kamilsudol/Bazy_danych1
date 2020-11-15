@@ -1,0 +1,31 @@
+1. WITH RECURSIVE Silnia(n, silnia) AS (VALUES(1, 1) UNION SELECT n+1, silnia * (n+1) FROM Silnia WHERE n < 10) SELECT * FROM Silnia ORDER BY n;
+
+2. SELECT s.*, d.empname AS mgrname FROM staff s JOIN staff d ON(d.empno = s.mgrno) ORDER BY empno;
+
+3. WITH RECURSIVE substuff AS
+(
+    SELECT *, ''::VARCHAR(20) AS mgrname, 1::INTEGER lvl FROM staff WHERE mgrno IS NULL
+    UNION ALL
+    SELECT s.*, ss.empname, (ss.lvl+1)
+    FROM
+        staff s
+    JOIN
+        substuff ss
+    ON (s.mgrno = ss.empno)
+    WHERE s.mgrno IS NOT NULL
+)
+SELECT ss.empname, ss.mgrname, ss.lvl FROM substuff ss ORDER BY lvl;
+
+4. WITH RECURSIVE substuff AS
+(
+    SELECT *, 1::INTEGER lvl, ''::TEXT AS path FROM staff WHERE mgrno IS NULL
+    UNION ALL
+    SELECT s.*, (ss.lvl+1), concat(ss.path, ' -> ', ss.empname)
+    FROM
+        staff s
+    JOIN
+        substuff ss
+    ON (s.mgrno = ss.empno)
+    WHERE s.mgrno IS NOT NULL
+)
+SELECT ss.empname, ss.lvl, ss.path FROM substuff ss ORDER BY lvl;
