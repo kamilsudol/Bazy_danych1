@@ -1,0 +1,15 @@
+CREATE OR REPLACE FUNCTION rownanie_tables(A NUMERIC, B NUMERIC, C NUMERIC, x0 NUMERIC, krok NUMERIC, ilosc_rekordow NUMERIC)
+RETURNS TABLE(i INTEGER, x NUMERIC, y NUMERIC) AS $$
+BEGIN
+	FOR k IN 1..ilosc_rekordow LOOP
+		i:=k;
+		x:= x0 + (i-1)*krok;
+		y:= A*x*x + B*x + C;
+		RETURN NEXT;
+	END LOOP;
+END;
+$$
+LANGUAGE plpgsql;
+
+SELECT * FROM rownanie_tables(1,2,1,1,1,10);
+

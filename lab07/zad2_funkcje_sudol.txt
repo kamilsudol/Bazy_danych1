@@ -1,0 +1,39 @@
+CREATE OR REPLACE FUNCTION rownanie_1(A NUMERIC, B NUMERIC, C NUMERIC)
+RETURNS TABLE(rozw_x1 TEXT, rozw_x2 TEXT) AS $$
+DECLARE
+	delta NUMERIC;
+	x NUMERIC;
+	x1 NUMERIC;
+	x2 NUMERIC;
+	xi1 NUMERIC;
+	xi2 NUMERIC;
+BEGIN
+	delta := B*B - 4*A*C;
+	RAISE NOTICE 'INFORMACJA: DELTA = %', delta;
+	IF delta >= 0 THEN
+		RAISE NOTICE 'INFORMACJA: Rozwiazanie posiada dwa rzeczywiste pierwiastki';
+		x1 := (-B - SQRT(delta))/(2*A);
+		x2 := (-B + SQRT(delta))/(2*A);
+		RAISE NOTICE 'INFORMACJA: x1 = %', x1;
+		RAISE NOTICE 'INFORMACJA: x2 = %', x2;
+		rozw_x1 :='(x1 = '||CAST(x1 AS TEXT)||')';
+		rozw_x2 := '(x2 = '||CAST(x2 AS TEXT)||')';
+		RETURN NEXT;
+	ELSE
+		RAISE NOTICE 'INFORMACJA: Rozwiazanie w dziedzinie liczb zespolonych';
+		x1 := -B/(2*A);
+        	xi1 := SQRT(-delta)/(2*A);
+        	x2 := -B/(2*A);
+        	xi1 := SQRT(-delta)/(2*A);
+        	RAISE NOTICE 'INFORMACJA: x1 = % - %i', x1, xi1;
+        	RAISE NOTICE 'INFORMACJA: x2 = % + %i', x2, xi1;
+		rozw_x1 :='(x1 = '||CAST(x1 AS TEXT)||'-'||CAST(xi1 AS TEXT)||'i)';
+		rozw_x2 :='(x2 = '||CAST(x2 AS TEXT)||'+'||CAST(xi2 AS TEXT)||'i)';
+		RETURN NEXT;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+SELECT * FROM rownanie_1(1,10,1);
+SELECT * FROM rownanie_1(10,5,1);
