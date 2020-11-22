@@ -1,0 +1,13 @@
+CREATE OR REPLACE FUNCTION fun_rec(n INTEGER ) 
+RETURNS TABLE(id INTEGER, mess TEXT) AS
+$$
+DECLARE
+	rec RECORD;
+BEGIN
+	FOR rec IN(SELECT s.*, i.description FROM stock s JOIN item i ON i.item_id = s.item_id WHERE s.quantity <= $1)
+	LOOP	
+		INSERT INTO reorders(item_id, message) values(rec.item_id,'Zaraz zabraknie ' || rec.description);
+	END LOOP;
+	
+END;
+$$ LANGUAGE plpgsql;  
