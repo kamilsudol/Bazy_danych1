@@ -1,0 +1,83 @@
+------------------ ZAD1 --------------------------
+
+CREATE OR REPLACE FUNCTION order_discount() RETURNS TRIGGER AS
+$$
+DECLARE 
+	rec RECORD;
+BEGIN
+	SELECT COUNT(*) AS zlicz INTO rec FROM orderinfo WHERE customer_id = NEW.customer_id;
+	IF rec.zlicz % 10 = 0 THEN
+		UPDATE customer SET discount = discount + 0.02 WHERE customer_id = NEW.customer_id;
+	END IF;
+	RETURN NEW;
+END;
+$$LANGUAGE 'plpgsql';
+
+CREATE TRIGGER trigger_order_discount AFTER INSERT ON orderinfo FOR EACH ROW EXECUTE PROCEDURE order_discount();
+
+--------------------------------------------------
+------------------ ZAD2 --------------------------
+
+CREATE TABLE trig_order_shipping_validator(orderinfo_id INTEGER, flag INTEGER); --tablica pomocnicza zapobiegajaca rekursywne wywolanie triggera
+
+CREATE OR REPLACE FUNCTION order_shipping() RETURNS TRIGGER AS
+$$
+DECLARE
+	rec1 RECORD;
+BEGIN
+	SELECT flag INTO rec1 FROM trig_order_shipping_validator WHERE orderinfo_id = NEW.orderinfo_id;
+	IF rec1 IS NULL THEN
+		IF NEW.date_shipped - OLD.date_placed > 3 THEN
+			INSERT INTO trig_order_shipping_validator VALUES(NEW.orderinfo_id, 1);
+			UPDATE orderinfo SET shipping = 0.0 WHERE orderinfo_id = NEW.orderinfo_id;
+		END IF;
+		RETURN NEW;
+	END IF;
+	RETURN NEW;
+END;
+$$LANGUAGE 'plpgsql';
+
+
+--DROP TRIGGER trigger_order_shipping ON orderinfo;
+CREATE TRIGGER trigger_order_shipping AFTER UPDATE ON orderinfo FOR EACH ROW EXECUTE PROCEDURE order_shipping();
+
+--UPDATE orderinfo SET date_shipped = NOW() WHERE orderinfo_id = 13;
+
+--------------------------------------------------
+------------------ ZAD3 --------------------------
+
+CREATE OR REPLACE FUNCTION item_check() RETURNS TRIGGER AS
+$$
+DECLARE
+	q_temp INTEGER;
+	rec1 RECORD;
+	rec2 RECORD;
+BEGIN
+	SELECT customer_id AS c, shipping AS s INTO rec1 FROM orderinfo WHERE orderinfo_id=NEW.orderinfo_id;
+	IF NEW.quantity > 10 THEN
+		q_temp := NEW.quantity;
+		WHILE q_temp > 0
+		LOOP
+			IF q_temp > 10 THEN
+				INSERT INTO orderinfo(customer_id, date_placed, shipping) VALUES(rec1.c, NOW(), rec1.s);
+				SELECT orderinfo_id INTO rec2 FROM orderinfo ORDER BY orderinfo_id DESC LIMIT 1;
+				INSERT INTO orderline VALUES(rec2.orderinfo_id, NEW.item_id, 10);
+			ELSE
+				INSERT INTO orderinfo(customer_id, date_placed, shipping) VALUES(rec1.c, NOW(), rec1.s);
+				SELECT orderinfo_id INTO rec2 FROM orderinfo ORDER BY orderinfo_id DESC LIMIT 1;
+				INSERT INTO orderline VALUES(rec2.orderinfo_id, NEW.item_id, q_temp);
+			END IF;
+			q_temp = q_temp - 10;
+		END LOOP;
+		RETURN NULL;
+	END IF;
+	RETURN NEW;
+END;
+$$LANGUAGE 'plpgsql';
+
+CREATE TRIGGER trigger_item_check BEFORE INSERT OR UPDATE ON orderline FOR EACH ROW EXECUTE PROCEDURE item_check();
+
+--INSERT INTO orderline(orderinfo_id, item_id, quantity) VALUES(1, 3, 33);
+
+--------------------------------------------------
+

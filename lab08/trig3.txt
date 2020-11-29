@@ -1,0 +1,32 @@
+CREATE OR REPLACE FUNCTION item_check() RETURNS TRIGGER AS
+$$
+DECLARE
+	q_temp INTEGER;
+	rec1 RECORD;
+	rec2 RECORD;
+BEGIN
+	SELECT customer_id AS c, shipping AS s INTO rec1 FROM orderinfo WHERE orderinfo_id=NEW.orderinfo_id;
+	IF NEW.quantity > 10 THEN
+		q_temp := NEW.quantity;
+		WHILE q_temp > 0
+		LOOP
+			IF q_temp > 10 THEN
+				INSERT INTO orderinfo(customer_id, date_placed, shipping) VALUES(rec1.c, NOW(), rec1.s);
+				SELECT orderinfo_id INTO rec2 FROM orderinfo ORDER BY orderinfo_id DESC LIMIT 1;
+				INSERT INTO orderline VALUES(rec2.orderinfo_id, NEW.item_id, 10);
+			ELSE
+				INSERT INTO orderinfo(customer_id, date_placed, shipping) VALUES(rec1.c, NOW(), rec1.s);
+				SELECT orderinfo_id INTO rec2 FROM orderinfo ORDER BY orderinfo_id DESC LIMIT 1;
+				INSERT INTO orderline VALUES(rec2.orderinfo_id, NEW.item_id, q_temp);
+			END IF;
+			q_temp = q_temp - 10;
+		END LOOP;
+		RETURN NULL;
+	END IF;
+	RETURN NEW;
+END;
+$$LANGUAGE 'plpgsql';
+
+CREATE TRIGGER trigger_item_check BEFORE INSERT OR UPDATE ON orderline FOR EACH ROW EXECUTE PROCEDURE item_check();
+
+--insert into orderline(orderinfo_id, item_id, quantity) values(1, 3, 33);

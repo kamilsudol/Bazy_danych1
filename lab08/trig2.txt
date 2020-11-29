@@ -1,0 +1,24 @@
+CREATE TABLE trig_order_shipping_validator(orderinfo_id INTEGER, flag INTEGER); --tablica pomocnicza zapobiegajaca rekursywne wywolanie triggera
+
+CREATE OR REPLACE FUNCTION order_shipping() RETURNS TRIGGER AS
+$$
+DECLARE
+	rec1 RECORD;
+BEGIN
+	SELECT flag INTO rec1 FROM trig_order_shipping_validator WHERE orderinfo_id = NEW.orderinfo_id;
+	IF rec1 IS NULL THEN
+		IF NEW.date_shipped - OLD.date_placed > 3 THEN
+			INSERT INTO trig_order_shipping_validator VALUES(NEW.orderinfo_id, 1);
+			UPDATE orderinfo SET shipping = 0.0 WHERE orderinfo_id = NEW.orderinfo_id;
+		END IF;
+		RETURN NEW;
+	END IF;
+	RETURN NEW;
+END;
+$$LANGUAGE 'plpgsql';
+
+
+--DROP TRIGGER trigger_order_shipping ON orderinfo;
+CREATE TRIGGER trigger_order_shipping AFTER UPDATE ON orderinfo FOR EACH ROW EXECUTE PROCEDURE order_shipping();
+
+--update orderinfo set date_shipped = now() WHERE orderinfo_id = 13;

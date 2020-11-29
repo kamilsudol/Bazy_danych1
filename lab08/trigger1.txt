@@ -1,0 +1,25 @@
+CREATE OR REPLACE FUNCTION customer_trigger() RETURNS TRIGGER AS $$
+DECLARE
+	flag RECORD;
+
+BEGIN
+	FOR flag IN(SELECT o.date_shipped FROM orderinfo o WHERE OLD.customer_id = o.customer_id)
+	LOOP	
+		IF flag IS NULL THEN
+			RAISE EXCEPTION 'Klient ma niezrealizowane zamowienie';
+			RETURN NULL;
+		END IF;
+	END LOOP;
+	
+	DELETE FROM orderline ol WHERE orderinfo_id IN(SELECT o.orderinfo_id FROM orderinfo o WHERE o.customer_id = OLD.customer_id);
+	DELETE FROM orderinfo o WHERE o.customer_id = OLD.customer_id;
+	RETURN OLD;
+END;
+$$LANGUAGE 'plpgsql';
+
+
+CREATE TRIGGER trig_customer BEFORE DELETE ON customer FOR EACH ROW EXECUTE PROCEDURE customer_trigger();
+--Sprawdzamy
+UPDATE orderinfo SET date_shipped=NULL WHERE orderinfo_id=4;
+ 
+DELETE FROM customer WHERE customer_id = 8;

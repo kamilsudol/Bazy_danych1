@@ -1,0 +1,22 @@
+CREATE or replace FUNCTION customer_magazine_trigger() RETURNS TRIGGER AS $$
+DECLARE
+	rec1 RECORD;
+	rec2 RECORD;
+BEGIN
+	IF NEW.description LIKE '%Magazyn%' THEN
+		FOR rec1 IN(SELECT c.customer_id FROM customer c)
+		LOOP
+			INSERT INTO orderinfo(customer_id, date_placed, shipping) VALUES(rec1.customer_id, NOW(), 0.0);
+			SELECT orderinfo_id INTO rec2 FROM orderinfo ORDER BY orderinfo_id DESC LIMIT 1;
+			INSERT INTO orderline VALUES(rec2.orderinfo_id, NEW.item_id, 1);
+		END LOOP;
+	END IF;
+	RETURN NEW;
+END;
+$$LANGUAGE 'plpgsql';
+
+
+CREATE TRIGGER trig_customer AFTER INSERT ON item FOR EACH ROW EXECUTE PROCEDURE customer_magazine_trigger();
+ 
+--Sprawdzamy
+INSERT INTO item (description, cost_price,sell_price) values('Magazyn - Luty', 0.1, 0.0);
