@@ -1,0 +1,59 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "test.h"
+
+EXEC SQL include sqlda.h;
+sqlda_t *sqlda1;
+ 
+EXEC SQL BEGIN DECLARE SECTION;
+    char q[] = "lab_2.orderinfo";
+    char db[15];
+    char usr[15];
+    char pas[15];
+    char dbname[1024];
+    char query[1024] = "SELECT json_agg(t) FROM ";
+	char q_c[100] = "SELECT * FROM ";
+    char q_d[100] = "SELECT COUNT(*) FROM ";
+	char *result;
+    int i;
+	int N;
+EXEC SQL END DECLARE SECTION;
+ 
+int main()
+{
+    strncpy(db,dbase,15);
+    strncpy(usr,user,15);
+    strncpy(pas,pass,15);
+    /* ECPGdebug(1,stderr);  */
+    EXEC SQL CONNECT TO :db AS con1  USER :usr USING :pas;
+    EXEC SQL SELECT current_database() INTO :dbname;
+ 
+    strcat(q_c, q);
+    strcat(q_d, q);
+    strcat(query, q);
+    strcat(query, " t");
+
+    EXEC SQL PREPARE s1 FROM :q_d;
+    EXEC SQL EXECUTE s1 INTO :N;
+
+	EXEC SQL PREPARE s2 FROM :q_c;
+    EXEC SQL DESCRIBE s2 INTO sqlda1;
+    
+    /*printf("# of fields: %d\n", sqlda1->sqld*N*20*2);*/
+
+	result = (char*)malloc(sqlda1->sqld*N*20*sizeof(char)*2);
+
+    EXEC SQL PREPARE s3 FROM :query;
+    EXEC SQL EXECUTE s3 INTO :result;
+	
+	/*printf("%s\n", result);*/
+    FILE *file_ptr = fopen("result.json", "w");
+    fprintf(file_ptr, "%s\n", result);
+    fclose(file_ptr);
+
+    EXEC SQL COMMIT;
+    EXEC SQL DISCONNECT ALL;
+	free(sqlda1);
+    return 0;
+}
