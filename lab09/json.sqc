@@ -7,32 +7,28 @@ EXEC SQL include sqlda.h;
 sqlda_t *sqlda1;
  
 EXEC SQL BEGIN DECLARE SECTION;
-    char q[] = "lab_2.orderinfo";
     char db[15];
     char usr[15];
     char pas[15];
     char dbname[1024];
     char query[1024] = "SELECT json_agg(t) FROM ";
-	char q_c[100] = "SELECT * FROM ";
+	char q_c[100] = "SELECT ";
     char q_d[100] = "SELECT COUNT(*) FROM ";
 	char *result;
     int i;
 	int N;
 EXEC SQL END DECLARE SECTION;
- 
-int main()
-{
-    strncpy(db,dbase,15);
-    strncpy(usr,user,15);
-    strncpy(pas,pass,15);
-    /* ECPGdebug(1,stderr);  */
-    EXEC SQL CONNECT TO :db AS con1  USER :usr USING :pas;
-    EXEC SQL SELECT current_database() INTO :dbname;
- 
-    strcat(q_c, q);
-    strcat(q_d, q);
-    strcat(query, q);
-    strcat(query, " t");
+
+extern inline void sql_to_json(char * columns, char * table){
+    strcat(q_c, columns);
+    strcat(q_c, " FROM ");
+    strcat(q_c, table);
+
+    strcat(q_d, table);
+
+    strcat(query, "(");
+    strcat(query, q_c);
+    strcat(query, ") t");
 
     EXEC SQL PREPARE s1 FROM :q_d;
     EXEC SQL EXECUTE s1 INTO :N;
@@ -51,9 +47,23 @@ int main()
     FILE *file_ptr = fopen("result.json", "w");
     fprintf(file_ptr, "%s\n", result);
     fclose(file_ptr);
+    free(sqlda1);
+    free(result);
+}
+
+int main()
+{
+    strncpy(db,dbase,15);
+    strncpy(usr,user,15);
+    strncpy(pas,pass,15);
+    /* ECPGdebug(1,stderr);  */
+    EXEC SQL CONNECT TO :db AS con1  USER :usr USING :pas;
+    EXEC SQL SELECT current_database() INTO :dbname;
+ 
+    sql_to_json("lname, customer_id", "lab_2.customer");
+    /*sql_to_json("*", "lab_2.customer");*/
 
     EXEC SQL COMMIT;
     EXEC SQL DISCONNECT ALL;
-	free(sqlda1);
     return 0;
 }
