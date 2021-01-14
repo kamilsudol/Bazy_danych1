@@ -1,0 +1,1 @@
+SELECT query_to_xml('SELECT c.lname, i.description, ol.quantity FROM (((lab_2.customer c LEFT JOIN lab_2.orderinfo o ON c.customer_id = o.customer_id) LEFT JOIN lab_2.orderline ol ON ol.orderinfo_id = o.orderinfo_id) LEFT JOIN lab_2.item i ON i.item_id = ol.item_id)',true,true,'');
